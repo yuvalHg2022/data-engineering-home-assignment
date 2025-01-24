@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Infrastructure for AWS Glue-based Data Engineering Assignment
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: "data-engineer-assignment-yuval-huga"
+    Description: The name of the S3 bucket for Glue job scripts and outputs
+  GlueJobName:
+    Type: String
+    Default: "DataEngineeringJob-yuval-huga"
+    Description: Name of the Glue job
+  GlueDatabaseName:
+    Type: String
+    Default: "stock_analysis_yuval_huga"
+    Description: Name of the Glue Catalog Database
+
+Resources:
+  # S3 Bucket (Keep this if you want the bucket created; remove if it already exists)
+  GlueJobBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      VersioningConfiguration:
+        Status: Enabled
+
+  # IAM Role for Glue
+  GlueJobRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Policies:
+        - PolicyName: S3AccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3BucketName}/*"
+                  - !Sub "arn:aws:s3:::${S3BucketName}"
+
+  # Glue Catalog Database
+  GlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref "AWS::AccountId"
+      DatabaseInput:
+        Name: !Ref GlueDatabaseName
+
+  # Glue Job
+  GlueJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: !Ref GlueJobName
+      Role: !GetAtt GlueJobRole.Arn
+      Command:
+        Name: "glueetl"
+        ScriptLocation: !Sub "s3://${S3BucketName}/script/data_processing.py"
+        PythonVersion: "3"
+      GlueVersion: "3.0"
+      MaxCapacity: 2.0
+      DefaultArguments:
+        --TempDir: !Sub "s3://${S3BucketName}/temp/"
+        --enable-metrics: "true"
+        --job-bookmark-option: "job-bookmark-enable"
+      ExecutionProperty:
+        MaxConcurrentRuns: 1
+
+  # Glue Crawlers for Results
+  CalculateAvgDailyReturnCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "CalculateAvgDailyReturnCrawler"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${S3BucketName}/output/calculate_avg_daily_return/"
+      TablePrefix: "avg_daily_return_"
+
+  FindHighestWorthStockCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "FindHighestWorthStockCrawler"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${S3BucketName}/output/find_highest_worth_stock/"
+      TablePrefix: "highest_worth_stock_"
+
+  FindMostVolatileStockCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "FindMostVolatileStockCrawler"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${S3BucketName}/output/find_most_volatile_stock/"
+      TablePrefix: "most_volatile_stock_"
+
+  FindTop30DayReturnDatesCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: "FindTop30DayReturnDatesCrawler"
+      Role: !GetAtt GlueJobRole.Arn
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${S3BucketName}/output/find_top_30_day_return_dates/"
+      TablePrefix: "top_30_day_return_dates_"
