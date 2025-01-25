@@ -126,15 +126,15 @@ def main():
 
     # Step 2: Find the highest worth stock
     highest_worth_stock = find_highest_worth_stock(df)
-    upload_df_to_s3_as_parquet(highest_worth_stock, bucket_name, "output/find_highest_worth_stock")
+    upload_df_to_s3_as_parquet(highest_worth_stock, bucket_name, "output/highest_worth_stock")
 
     # Step 3: Find the most volatile stock
     most_volatile_stock = find_most_volatile_stock(df)
-    upload_df_to_s3_as_parquet(most_volatile_stock, bucket_name, "output/find_most_volatile_stock")
+    upload_df_to_s3_as_parquet(most_volatile_stock, bucket_name, "output/most_volatile_stock")
 
     # Step 4: Find the top 3 dates with the highest 30-day returns
     top_3_return_dates = find_top_30_day_return_dates(df)
-    upload_df_to_s3_as_parquet(top_3_return_dates, bucket_name, "output/find_top_30_day_return_dates")
+    upload_df_to_s3_as_parquet(top_3_return_dates, bucket_name, "output/top_30_day_return_dates")
 
 
 if __name__ == "__main__":

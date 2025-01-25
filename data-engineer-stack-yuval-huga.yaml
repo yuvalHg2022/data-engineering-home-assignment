@@ -88,7 +88,7 @@ Resources:
       Targets:
         S3Targets:
           - Path: !Sub "s3://${S3BucketName}/output/calculate_avg_daily_return/"
-      TablePrefix: "avg_daily_return_"
+
 
   FindHighestWorthStockCrawler:
     Type: AWS::Glue::Crawler
@@ -98,8 +98,8 @@ Resources:
       DatabaseName: !Ref GlueDatabaseName
       Targets:
         S3Targets:
-          - Path: !Sub "s3://${S3BucketName}/output/find_highest_worth_stock/"
-      TablePrefix: "highest_worth_stock_"
+          - Path: !Sub "s3://${S3BucketName}/output/highest_worth_stock/"
+
 
   FindMostVolatileStockCrawler:
     Type: AWS::Glue::Crawler
@@ -109,8 +109,8 @@ Resources:
       DatabaseName: !Ref GlueDatabaseName
       Targets:
         S3Targets:
-          - Path: !Sub "s3://${S3BucketName}/output/find_most_volatile_stock/"
-      TablePrefix: "most_volatile_stock_"
+          - Path: !Sub "s3://${S3BucketName}/output/most_volatile_stock/"
+
 
   FindTop30DayReturnDatesCrawler:
     Type: AWS::Glue::Crawler
@@ -120,5 +120,5 @@ Resources:
       DatabaseName: !Ref GlueDatabaseName
       Targets:
         S3Targets:
-          - Path: !Sub "s3://${S3BucketName}/output/find_top_30_day_return_dates/"
+          - Path: !Sub "s3://${S3BucketName}/output/top_30_day_return_dates/"
       TablePrefix: "top_30_day_return_dates_"
